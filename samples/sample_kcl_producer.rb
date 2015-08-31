@@ -13,7 +13,7 @@
 #  express or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-require 'aws/kinesis'
+require 'aws-sdk-core'
 require 'multi_json'
 require 'optparse'
 
@@ -39,7 +39,7 @@ class SampleProducer
     begin
       @kinesis.delete_stream(:stream_name => @stream_name)
       puts "Deleted stream #{@stream_name}"
-    rescue AWS::Kinesis::Errors::ResourceNotFoundException
+    rescue Aws::Kinesis::Errors::ResourceNotFoundException
       # nothing to do 
     end
   end
@@ -56,7 +56,7 @@ class SampleProducer
         fail "Stream #{@stream_name} has #{desc[:shards].size} shards, while requested number of shards is #{@shard_count}"
       end
       puts "Stream #{@stream_name} already exists with #{desc[:shards].size} shards"
-    rescue AWS::Kinesis::Errors::ResourceNotFoundException
+    rescue Aws::Kinesis::Errors::ResourceNotFoundException
       puts "Creating stream #{@stream_name} with #{@shard_count || 2} shards"
       @kinesis.create_stream(:stream_name => @stream_name,
                              :shard_count => @shard_count || 2)
@@ -113,7 +113,7 @@ if __FILE__ == $0
     opts.on("-d SHARD_COUNT", "--shards SHARD_COUNT", "Number of shards to use when creating the stream. (Default: 2)") do |s|
       stream_name = s
     end
-    opts.on("-r REGION_NAME", "--region REGION_NAME", "AWS region name (see http://tinyurl.com/cc9cap7). (Default: SDK default)") do |r|
+    opts.on("-r REGION_NAME", "--region REGION_NAME", "Aws region name (see http://tinyurl.com/cc9cap7). (Default: SDK default)") do |r|
       aws_region = r
     end
     opts.on("-p SLEEP_SECONDS", "--sleep SLEEP_SECONDS", Float, "How long to sleep betweep puts (seconds, can be fractional). (Default #{sleep_between_puts})") do |s|
@@ -139,10 +139,10 @@ if __FILE__ == $0
 
   # Getting a connection to Amazon Kinesis will require that you have
   # your credentials available to one of the standard credentials providers.
-  # See http://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html
+  # See http://docs.aws.amazon.com/AwsJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAwsCredentialsProviderChain.html
   kconfig = {}
   kconfig[:region] = aws_region  if aws_region
-  kinesis = AWS::Kinesis::Client.new(kconfig)
+  kinesis = Aws::Kinesis::Client.new(kconfig)
 
   producer = SampleProducer.new(kinesis, stream_name, sleep_between_puts, shard_count)
   producer.run(timeout)
